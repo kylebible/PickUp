@@ -62,7 +62,7 @@
                         </constraints>
                     </view>
                     <navigationItem key="navigationItem" title="Find a Game" id="URU-G9-1qk">
-                        <barButtonItem key="rightBarButtonItem" title="Add Event" id="gKy-7U-Or8">
+                        <barButtonItem key="rightBarButtonItem" title="Add Game" id="gKy-7U-Or8">
                             <connections>
                                 <segue destination="hID-xO-m5C" kind="presentation" id="51Y-pG-yXF"/>
                             </connections>

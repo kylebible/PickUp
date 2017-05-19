@@ -184,9 +184,10 @@ func generatePins(arr: [(Double, Double, String, String, Int)]){
                 if myLocation.distance(from: pinLocation) < 50000 {
                     let pinAnnotation = CustomPointAnnotation()
                     let image = changeImageName(str: i.3)
+                    let miles = Double(round((myLocation.distance(from: pinLocation)/1609.34)*10)/10)
                     pinAnnotation.coordinate = pinLocation.coordinate
                     pinAnnotation.title = i.2
-                    pinAnnotation.subtitle = i.3
+                    pinAnnotation.subtitle = "\(i.3) \(miles) miles away!"
                     pinAnnotation.imageName = image
                     pinAnnotation.id = i.4
                     map.addAnnotation(pinAnnotation)
@@ -210,7 +211,8 @@ func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> 
 func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
     let myAnnotationsArray = removeUserLocationFromArr(arr: map.annotations)
     let cell = Bundle.main.loadNibNamed("CustomTableViewCell", owner: self, options: nil)?.first as! CustomTableViewCell
-    cell.mainImageView.image = UIImage(named: changeImageName(str: myAnnotationsArray[indexPath.row].subtitle!!))
+    let annotation = myAnnotationsArray[indexPath.row] as! CustomPointAnnotation
+    cell.mainImageView.image = UIImage(named: annotation.imageName)
     cell.mainImageView.image?.accessibilityFrame.size = CGSize(width: 35, height: 35)
     //    let cell = tableView.dequeueReusableCell(withIdentifier: "myCell", for: indexPath)
     cell.mainLabelView.text = myAnnotationsArray[indexPath.row].title!!
