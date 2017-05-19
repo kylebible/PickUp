@@ -22,20 +22,20 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
 //    var serverData = ServerData()
     var zoomedIn = false
     
-    var pinArr = [(Double, Double, String, String)]()
+    var pinArr = [(Double, Double, String, String, Int)]()
     var jsonObject : [Dictionary<String,Any>]?
     var serverdata = ServerData()
     
     
     class CustomPointAnnotation: MKPointAnnotation {
         var imageName: String!
+        var id: Int!
     }
     
     func update() {
-        let annotationsArr = self.map.annotations
-        self.map.removeAnnotations(self.map.annotations)
-        self.map.addAnnotations(annotationsArr)
-        self.tableView.reloadData()
+        pinArr = []
+        map.removeAnnotations(map.annotations)
+        serverdata.getData{jsonObj in self.createArray(jsonobj: jsonObj)}
     }
 
     
@@ -63,8 +63,8 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
     }
     
     override func viewDidLoad() {
-        Timer.scheduledTimer(timeInterval: 10, target: self, selector: #selector(ViewController.update), userInfo: nil, repeats: true)
         super.viewDidLoad()
+        //        Timer.scheduledTimer(timeInterval: 1, target: self, selector: #selector(ViewController.update), userInfo: nil, repeats: true)
         serverdata.getData{jsonObj in self.createArray(jsonobj: jsonObj)}
         locationManager.delegate = self
         locationManager.desiredAccuracy = kCLLocationAccuracyBest
@@ -131,33 +131,37 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
         for res in jsonObject!{
             let lat = Double(res["latitude"] as! String)
             let lng = Double(res["longitude"] as! String)
-            pinArr.append((lat!, lng!, res["message"] as! String, res["sport"] as! String))
+            pinArr.append((lat!, lng!, res["message"] as! String, res["sport"] as! String, res["id"] as! Int))
         }
         print(pinArr.count)
         generatePins(arr: pinArr)
     }
     
-//    func appendArray(jsonobj : [String:Any]?) {
-//        print("arrayfunction")
-//        var results = jsonobj
-//        let lat = Double(results?["latitude"] as! String)
-//        let lng = Double(results?["longitude"] as! String)
-//        pinArr.append((lat!, lng!, results?["message"] as! String, results?["sport"] as! String))
-//        
-//        map.removeAnnotations(map.annotations)
-//        //only display pins if they are within a certain distance
-//        map.removeAnnotations(map.annotations)
-//        generatePins(arr: pinArr)
-//        DispatchQueue.main.async() {
-//            self.tableView.reloadData()
-//        }
-//        let latitude = Double(results?["latitude"] as! String)
-//        let longitude = Double(results?["longitude"] as! String)
-//        let coordinates = CLLocationCoordinate2DMake(CLLocationDegrees(latitude!), CLLocationDegrees(longitude!))
-//        map.setCenter(coordinates, animated: false)
-//    }
+    func appendArray(jsonobj : [String:Any]?) {
+        print("arrayfunction")
+        var results = jsonobj
+        let lat = Double(results?["latitude"] as! String)
+        let lng = Double(results?["longitude"] as! String)
+        pinArr.append((lat!, lng!, results?["message"] as! String, results?["sport"] as! String, results?["id"] as! Int))
+        
+        map.removeAnnotations(map.annotations)
+        //only display pins if they are within a certain distance
+        map.removeAnnotations(map.annotations)
+        generatePins(arr: pinArr)
+        DispatchQueue.main.async() {
+            self.tableView.reloadData()
+            let annotationsArr = self.map.annotations
+            self.map.removeAnnotations(self.map.annotations)
+            self.map.addAnnotations(annotationsArr)
+            print("annotations", self.map.annotations.count)
+        }
+        let latitude = Double(results?["latitude"] as! String)
+        let longitude = Double(results?["longitude"] as! String)
+        let coordinates = CLLocationCoordinate2DMake(CLLocationDegrees(latitude!), CLLocationDegrees(longitude!))
+        map.setCenter(coordinates, animated: false)
+    }
     
-func generatePins(arr: [(Double, Double, String, String)]){
+func generatePins(arr: [(Double, Double, String, String, Int)]){
         for i in arr {
             let pinLocation = CLLocation(latitude: CLLocationDegrees(i.0), longitude: CLLocationDegrees(i.1))
             //only display pins if they are within a certain distance
@@ -169,6 +173,7 @@ func generatePins(arr: [(Double, Double, String, String)]){
                     pinAnnotation.title = i.2
                     pinAnnotation.subtitle = i.3
                     pinAnnotation.imageName = image
+                    pinAnnotation.id = i.4
                     map.addAnnotation(pinAnnotation)
                 }
             }
@@ -212,11 +217,7 @@ func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> U
     func doneButtonPressed(by controller: UIViewController, data: (String, String, String, String)) {
         dismiss(animated: true, completion: nil)
         //Post Stuff
-        pinArr = []
-        map.removeAnnotations(map.annotations)
-        serverdata.postData(tupe: data)
-//        {jsonObj in self.appendArray(jsonobj: jsonObj)}
-        serverdata.getData{jsonObj in self.createArray(jsonobj: jsonObj)}
+        serverdata.postData(tupe: data){jsonObj in self.appendArray(jsonobj: jsonObj)}
         let coordinates = CLLocationCoordinate2DMake(CLLocationDegrees(data.0)!, CLLocationDegrees(data.1)!)
         map.setCenter(coordinates, animated: true)
     }

@@ -33,8 +33,7 @@ class ServerData {
     
     
     
-    func postData(tupe: (String, String, String, String)) {
-//        , completion: @escaping ([String:Any]) -> ()){
+    func postData(tupe: (String, String, String, String), completion: @escaping ([String:Any]) -> ()){
     //declare parameter as a dictionary which contains string as key and value combination. considering inputs are valid
     
     let parameters = ["sport": tupe.2, "message": tupe.3, "latitude": tupe.0, "longitude": tupe.1] as Dictionary<String, String>
@@ -73,7 +72,7 @@ class ServerData {
         do {
             //create json object from data
             if let json = try JSONSerialization.jsonObject(with: data, options: .mutableContainers) as? [String: Any] {
-//                completion(json)
+                completion(json)
             }
             
         } catch let error {
