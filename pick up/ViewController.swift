@@ -33,9 +33,8 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
     }
     
     func update() {
-        pinArr = []
-        map.removeAnnotations(map.annotations)
-        serverdata.getData{jsonObj in self.createArray(jsonobj: jsonObj)}
+        print(serverdata.getData{jsonObj in self.getArray(jsonobj: jsonObj)})
+        print(pinArr.count)
     }
 
     
@@ -64,7 +63,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        //        Timer.scheduledTimer(timeInterval: 1, target: self, selector: #selector(ViewController.update), userInfo: nil, repeats: true)
+        Timer.scheduledTimer(timeInterval: 1, target: self, selector: #selector(ViewController.update), userInfo: nil, repeats: true)
         serverdata.getData{jsonObj in self.createArray(jsonobj: jsonObj)}
         locationManager.delegate = self
         locationManager.desiredAccuracy = kCLLocationAccuracyBest
@@ -137,6 +136,24 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
         generatePins(arr: pinArr)
     }
     
+    func getArray(jsonobj : [Dictionary<String,Any>]?){
+        jsonObject = jsonobj
+        if pinArr.count < (jsonObject?.count)! {
+            let res = jsonObject?[(jsonObject?.count)!-1]
+            let lat = Double(res?["latitude"] as! String)
+            let lng = Double(res?["longitude"] as! String)
+            pinArr.append((lat!, lng!, res?["message"] as! String, res?["sport"] as! String, res?["id"] as! Int))
+            map.removeAnnotations(map.annotations)
+            generatePins(arr: pinArr)
+            DispatchQueue.main.async() {
+                self.tableView.reloadData()
+                let annotationsArr = self.map.annotations
+                self.map.removeAnnotations(self.map.annotations)
+                self.map.addAnnotations(annotationsArr)
+            }
+        }
+    }
+    
     func appendArray(jsonobj : [String:Any]?) {
         print("arrayfunction")
         var results = jsonobj
@@ -144,7 +161,6 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
         let lng = Double(results?["longitude"] as! String)
         pinArr.append((lat!, lng!, results?["message"] as! String, results?["sport"] as! String, results?["id"] as! Int))
         
-        map.removeAnnotations(map.annotations)
         //only display pins if they are within a certain distance
         map.removeAnnotations(map.annotations)
         generatePins(arr: pinArr)
@@ -153,7 +169,6 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
             let annotationsArr = self.map.annotations
             self.map.removeAnnotations(self.map.annotations)
             self.map.addAnnotations(annotationsArr)
-            print("annotations", self.map.annotations.count)
         }
         let latitude = Double(results?["latitude"] as! String)
         let longitude = Double(results?["longitude"] as! String)
